@@ -1,0 +1,36 @@
+services:
+
+  db:
+    image: postgres:16
+    container_name: tm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: $(POSTGRES_DB)
+      POSTGRES_USER: $(POSTGRES_USER)
+      POSTGRES_PASSWORD: $(POSTGRES_PASSWORD)
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: 
+      context: .
+      dockerfile: TaskManager.Api/dockerfile
+    container_name: tm-api
+    depends_on:
+      - db
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Postgres: Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      JWT__Key: ${JWT__Key}
+      JWT__Issuer: TaskManager
+      JWT__Audience: TaskManager
+      JWT__ExpiresMinutes: "60" 
+    ports:
+      - "8080:8080"
+
+
+volumes:
+  pgdata:
