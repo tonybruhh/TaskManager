@@ -1,4 +1,4 @@
-namespace TaskManager.Api.Endpoints.Contracts;
+namespace TaskManager.Api.Contracts;
 
 
 public record AuthResponse(string Token, DateTime ExpiresAtUtc);
