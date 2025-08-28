@@ -66,9 +66,9 @@ public static class AuthEndPoints
             new (JwtRegisteredClaimNames.UniqueName, user.UserName ?? string.Empty),
             new (JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
 
-            new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Name, user.UserName ?? string.Empty),
-            new(ClaimTypes.Email, user.Email ?? string.Empty)
+            new (ClaimTypes.NameIdentifier, user.Id),
+            new (ClaimTypes.Name, user.UserName ?? string.Empty),
+            new (ClaimTypes.Email, user.Email ?? string.Empty)
         };
 
         var token = new JwtSecurityToken(issuer: jwt.Issuer,
