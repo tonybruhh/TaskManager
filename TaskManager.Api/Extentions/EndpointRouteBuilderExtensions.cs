@@ -7,6 +7,7 @@ public static class EndpointRouteBuilderExtensions
     public static IEndpointRouteBuilder MapApi(this IEndpointRouteBuilder app)
     {
         app.MapAuthEndpoints();
+        app.MaptaskEndpoints();
         return app;
     }
 }

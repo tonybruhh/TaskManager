@@ -10,26 +10,26 @@ public class TaskItem
 
     [Required]
     [MaxLength(200)]
-    public string Title { get; private set; } = null!;
+    public string Title { get; set; } = null!;
 
     [MaxLength(2000)]
-    public string? Description { get; private set; }
+    public string? Description { get; set; }
 
-    public bool IsCompleted { get; private set; }
+    public bool IsCompleted { get; set; }
 
-    public DateTime CreatedAt { get; private set; }
+    public DateTime CreatedAt { get; }
 
-    public DateTime? DueDateUtc { get; private set; }
+    public DateTime? DueDateUtc { get; set; }
 
     [Required]
-    public string UserId { get; private set; } = null!;
+    public string UserId { get; set; } = null!;
 
     [ForeignKey(nameof(UserId))]
     public AppUser? User { get; private set; }
 
     protected TaskItem() { }
 
-    public TaskItem(string title, string userId, string? description = null, DateTime? dueAt = null)
+    public TaskItem(string title, string userId, string? description = null, DateTime? dueDateUtc = null)
     {
         if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("Title is required", nameof(title));
         if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException("UserId is required", nameof(userId));
@@ -39,7 +39,7 @@ public class TaskItem
         UserId = userId;
         Description = description?.Trim();
         CreatedAt = DateTime.UtcNow;
-        DueDateUtc = dueAt;
+        DueDateUtc = dueDateUtc;
         IsCompleted = false;
     }
 }
