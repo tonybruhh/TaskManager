@@ -22,9 +22,4 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\TaskManager.Domain\TaskManager.Domain.csproj" />
-    <ProjectReference Include="..\TaskManager.DB\TaskManager.DB.csproj" />
-  </ItemGroup>
-
 </Project>
