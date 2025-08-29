@@ -24,10 +24,5 @@ app.UseAuthorization();
 
 app.MapApi();
 
-app.MapGet("/ping", () => Results.Ok(new { ok = true, time = DateTime.UtcNow }))
-    .WithName("Ping")
-    .WithOpenApi()
-    .RequireAuthorization();
-
 app.Run();
 
