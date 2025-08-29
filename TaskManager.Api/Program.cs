@@ -6,7 +6,8 @@ builder.Services
     .AddIdentityCoreServices()
     .AddEndpointsApiExplorer()
     .AddJwtAuth(builder.Configuration)
-    .AddSwaggerGenForMinimalApi();
+    .AddSwaggerGenForMinimalApi()
+    .AddRequestValidation();
 
 
 var app = builder.Build();

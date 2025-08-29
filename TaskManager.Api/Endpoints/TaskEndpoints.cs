@@ -1,8 +1,5 @@
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using Microsoft.Extensions.Configuration.UserSecrets;
-using Npgsql.Internal;
 using TaskManager.Api.Contracts;
 using TaskManager.Api.Domain;
 using TaskManager.Api.Extensions;
@@ -21,7 +18,7 @@ public static class TaskEndpoints
         {
             if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
                 return Results.Unauthorized();
-            
+
             var task = new TaskItem(req.Title, userId, req.Description, req.DueDateUtc);
 
             db.Tasks.Add(task);
@@ -30,7 +27,7 @@ public static class TaskEndpoints
 
             return Results.Created($"/api/tasks/{task.Id}", 
                 new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.DueDateUtc));
-        });
+        }).ValidateWith<TaskCreateRequest>();
 
         group.MapGet("/", async (AppDbContext db, ClaimsPrincipal user) =>
         {
@@ -78,7 +75,7 @@ public static class TaskEndpoints
             await db.SaveChangesAsync();
 
             return Results.Ok(new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, req.DueDateUtc));
-        });
+        }).ValidateWith<TaskUpdateRequest>();
 
         group.MapDelete("/{id:guid}", async (Guid id, AppDbContext db, ClaimsPrincipal user) =>
         {
