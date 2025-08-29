@@ -16,11 +16,9 @@ public static class TaskEndpoints
 
         group.MapPost("/", async (TaskCreateRequest req, AppDbContext db, ClaimsPrincipal user) =>
         {
-            if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-                return Results.Unauthorized();
+            var userId = user.GetUserIdOrThrow();
 
             var task = new TaskItem(req.Title, userId, req.Description, req.DueDateUtc);
-
             db.Tasks.Add(task);
 
             await db.SaveChangesAsync();
@@ -31,25 +29,22 @@ public static class TaskEndpoints
 
         group.MapGet("/", async (AppDbContext db, ClaimsPrincipal user) =>
         {
-            if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-                return Results.Unauthorized();
+            var userId = user.GetUserIdOrThrow();
 
             var tasks = await db.Tasks.AsNoTracking()
                 .Where(task => task.UserId == userId)
                 .Select(task => new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.DueDateUtc))
                 .ToListAsync();
 
-
             return Results.Ok(tasks);
         });
 
         group.MapGet("/{id:guid}", async (Guid id, AppDbContext db, ClaimsPrincipal user) =>
         {
-            if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-                return Results.Unauthorized();
+            user.IsUserIdNullOrEmpty();
 
             var task = await db.Tasks.AsNoTracking()
-                .Where(task =>task.Id == id)
+                .Where(task => task.Id == id)
                 .Select(task => new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.DueDateUtc))
                 .FirstOrDefaultAsync();
 
@@ -58,9 +53,7 @@ public static class TaskEndpoints
 
         group.MapPut("/{id:guid}", async (Guid id, TaskUpdateRequest req, AppDbContext db, ClaimsPrincipal user) =>
         {
-            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId is null)
-                return Results.Unauthorized();
+            user.IsUserIdNullOrEmpty();
 
             var task = await db.Tasks.FirstOrDefaultAsync(task => task.Id == id);
 
