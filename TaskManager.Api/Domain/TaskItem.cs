@@ -17,7 +17,7 @@ public class TaskItem
 
     public bool IsCompleted { get; set; }
 
-    public DateTime CreatedAt { get; }
+    public DateTime CreatedAt { get; set; }
 
     public DateTime? DueDateUtc { get; set; }
 
