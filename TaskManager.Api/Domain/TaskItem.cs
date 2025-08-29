@@ -38,7 +38,6 @@ public class TaskItem
         Title = title.Trim();
         UserId = userId;
         Description = description?.Trim();
-        CreatedAt = DateTime.UtcNow;
         DueDateUtc = dueDateUtc;
         IsCompleted = false;
     }

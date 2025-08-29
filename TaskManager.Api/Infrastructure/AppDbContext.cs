@@ -19,6 +19,26 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
                 .WithMany()
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(t => t.UserId);
+            b.HasIndex(t => new { t.UserId, t.IsCompleted });
+            b.HasIndex(t => new { t.UserId, t.DueDateUtc });
+            b.HasIndex(t => new { t.UserId, t.DueDateUtc }).IsDescending(false, true);
         });
+    }
+    
+    public override async Task<int> SaveChangesAsync(CancellationToken ct = default)
+    {
+        var now = DateTime.UtcNow;
+
+        foreach (var e in ChangeTracker.Entries<TaskItem>())
+        {
+            if (e.State == EntityState.Added)
+            {
+                e.Entity.CreatedAt = now;
+            }
+        }
+
+        return await base.SaveChangesAsync(ct);
     }
 }
