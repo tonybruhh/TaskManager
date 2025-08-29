@@ -1,15 +1,19 @@
+using System.Globalization;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using TaskManager.Api.Common;
 using TaskManager.Api.Contracts;
 using TaskManager.Api.Domain;
 using TaskManager.Api.Extensions;
 using TaskManager.Api.Infrastructure;
+
 
 namespace TaskManager.Api.Endpoints;
 
 
 public static class TaskEndpoints
 {
+    #region Routing / Map
     public static IEndpointRouteBuilder MapTaskEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("api/tasks").RequireAuthorization();
@@ -22,7 +26,9 @@ public static class TaskEndpoints
 
         return app;
     }
+    #endregion
 
+    #region Route Handlers (CRUD)
     private static async Task<IResult> CreateTaskAsync(TaskCreateRequest req, AppDbContext db, ClaimsPrincipal user)
     {
         var userId = user.GetUserIdOrThrow();
@@ -36,16 +42,33 @@ public static class TaskEndpoints
             new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.DueDateUtc));
     }
 
-    private static async Task<IResult> GetTasksAsync(AppDbContext db, ClaimsPrincipal user)
+    private static async Task<IResult> GetTasksAsync(
+        AppDbContext db,
+        ClaimsPrincipal user,
+        bool? isCompleted,
+        DateTime? dueBefore,
+        DateTime? dueAfter,
+        DateTime? createdBefore,
+        DateTime? createdAfter,
+        string? search,
+        string? sortings,
+        int? page,
+        int? pageSize)
     {
         var userId = user.GetUserIdOrThrow();
 
-        var tasks = await db.Tasks.AsNoTracking()
-            .Where(task => task.UserId == userId)
+        var tasks = db.Tasks.AsNoTracking().Where(task => task.UserId == userId);
+
+        tasks = SetFilters(tasks, isCompleted, dueBefore, dueAfter, createdBefore, createdAfter, search);
+        tasks = SetSorting(tasks, sortings);
+
+        var (p, ps) = Paging.Normalize(page, pageSize);
+        var total = await tasks.CountAsync();
+        var items = await tasks.Skip((p - 1) * ps).Take(ps)
             .Select(task => new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.DueDateUtc))
             .ToListAsync();
 
-        return Results.Ok(tasks);
+        return Results.Ok(new PagedResult<TaskResponse>(items, p, ps, items.Count, total));
     }
 
     private static async Task<IResult> GetTaskByIdAsync(Guid id, AppDbContext db, ClaimsPrincipal user)
@@ -89,4 +112,68 @@ public static class TaskEndpoints
 
         return Results.NoContent();
     }
+    #endregion
+
+    #region Filters & Sorting Helpers
+    private static IQueryable<TaskItem> SetFilters(
+        IQueryable<TaskItem> tasks,
+        bool? isCompleted,
+        DateTime? dueBefore,
+        DateTime? dueAfter,
+        DateTime? createdBefore,
+        DateTime? createdAfter,
+        string? search)
+    {
+        if (isCompleted is not null) tasks = tasks.Where(t => t.IsCompleted == isCompleted.Value);
+        if (dueBefore is not null) tasks = tasks.Where(t => t.DueDateUtc != null && t.DueDateUtc < dueBefore);
+        if (dueAfter is not null) tasks = tasks.Where(t => t.DueDateUtc != null && t.DueDateUtc > dueAfter);
+        if (createdBefore is not null) tasks = tasks.Where(t => t.CreatedAt < createdBefore);
+        if (createdAfter is not null) tasks = tasks.Where(t => t.CreatedAt > createdAfter);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var s = search.Trim();
+            tasks = tasks.Where(t =>
+                EF.Functions.ILike(t.Title, $"%{s}%") ||
+                EF.Functions.ILike(t.Description!, $"%{s}%"));
+        }
+
+        return tasks;
+    }
+
+    private static IQueryable<TaskItem> SetSorting(IQueryable<TaskItem> tasks, string? sortings)
+    {
+        if (string.IsNullOrWhiteSpace(sortings))
+            return tasks;
+
+        IOrderedQueryable<TaskItem>? ordered = null;
+
+        foreach (var sorting in sortings.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+
+            if (ordered is null)
+                ordered = sorting switch
+                {
+                    "created" => tasks.OrderBy(t => t.CreatedAt),
+                    "-created" => tasks.OrderByDescending(t => t.CreatedAt),
+                    "due" => tasks.OrderBy(t => t.DueDateUtc),
+                    "-due" => tasks.OrderByDescending(t => t.DueDateUtc),
+                    "title" => tasks.OrderBy(t => t.Title),
+                    "-title" => tasks.OrderByDescending(t => t.Title)
+                };
+            else
+                ordered = sorting switch
+                {
+                    "created" => ordered.ThenBy(t => t.CreatedAt),
+                    "-created" => ordered.ThenByDescending(t => t.CreatedAt),
+                    "due" => ordered.ThenBy(t => t.DueDateUtc),
+                    "-due" => ordered.ThenByDescending(t => t.DueDateUtc),
+                    "title" => ordered.ThenBy(t => t.Title),
+                    "-title" => ordered.ThenByDescending(t => t.Title)
+                };
+        }
+
+        return ordered ?? tasks;
+    }
+    #endregion
 }
