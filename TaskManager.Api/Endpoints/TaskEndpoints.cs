@@ -23,7 +23,8 @@ public static class TaskEndpoints
         group.MapGet("/{id:guid}", GetTaskByIdAsync);
         group.MapPut("/{id:guid}", UpdateTaskAsync).ValidateWith<TaskUpdateRequest>();
         group.MapDelete("/{id:guid}", DeleteTaskAsync);
-
+        group.MapGet("/_stats", GetStats);
+        
         return app;
     }
     #endregion
@@ -111,6 +112,20 @@ public static class TaskEndpoints
         await db.Tasks.Where(task => task.Id == id).ExecuteDeleteAsync();
 
         return Results.NoContent();
+    }
+
+    private static async Task<IResult> GetStats(AppDbContext db, ClaimsPrincipal user)
+    {
+        var userId = user.GetUserIdOrThrow();
+
+        var now = DateTime.UtcNow;
+        var total = await db.Tasks.CountAsync(t => t.UserId == userId);
+        var done  = await db.Tasks.CountAsync(t => t.UserId == userId && t.IsCompleted);
+        var open  = total - done;
+        var overdue = await db.Tasks.CountAsync(t =>
+            t.UserId == userId && !t.IsCompleted && t.DueDateUtc != null && t.DueDateUtc < now);
+
+        return Results.Ok(new { total, open, done, overdue });
     }
     #endregion
 
