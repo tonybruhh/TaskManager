@@ -1,6 +1,6 @@
 using TaskManager.Api.Endpoints;
 
-namespace TaskManager.Api.Extentions;
+namespace TaskManager.Api.Extensions;
 
 public static class EndpointRouteBuilderExtensions
 {

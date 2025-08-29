@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration.UserSecrets;
 using Npgsql.Internal;
 using TaskManager.Api.Contracts;
 using TaskManager.Api.Domain;
+using TaskManager.Api.Extensions;
 using TaskManager.Api.Infrastructure;
 
 namespace TaskManager.Api.Endpoints;
