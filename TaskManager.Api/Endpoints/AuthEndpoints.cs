@@ -18,40 +18,44 @@ public static class AuthEndPoints
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/auth");
-
-        group.MapPost("/register", async (RegisterRequest req, UserManager<AppUser> users) =>
-        {
-            var user = new AppUser { UserName = req.UserName, Email = req.Email, EmailConfirmed = true };
-            var result = await users.CreateAsync(user, req.Password);
-            return result.Succeeded
-                ? Results.Ok()
-                : Results.BadRequest(new { error = result.Errors.Select(e => e.Description) });
-        });
-
-        group.MapPost("/login", async (LoginRequest req, UserManager<AppUser> users, IOptions<JwtOptions> jwtOpt) =>
-        {
-            var user = await users.FindByEmailAsync(req.EmailOrUserName)
-                        ?? await users.FindByNameAsync(req.EmailOrUserName);
-
-            if (user is null || !await users.CheckPasswordAsync(user, req.Password))
-                return Results.Unauthorized();
-
-            var jwt = jwtOpt.Value;
-            var token = CreateJwt(user, jwt);
-
-            return Results.Ok(new AuthResponse(token.Token, token.ExpiresAtUtc));
-        });
-
-        group.MapGet("/me", [Authorize](ClaimsPrincipal user) =>
-        {
-            var id = user.FindFirstValue(JwtRegisteredClaimNames.Sub);
-            var name = user.Identity?.Name ?? user.FindFirstValue(JwtRegisteredClaimNames.UniqueName);
-            var email = user.FindFirstValue(JwtRegisteredClaimNames.Email);
-
-            return Results.Ok(new {Id = id, UserName = name, Email = email });
-        });
+        group.MapPost("/register", Register);
+        group.MapPost("/login", Login);
+        group.MapGet("/me", WhoAmI);
 
         return app;
+    }
+
+    private static async Task<IResult> Register(RegisterRequest req, UserManager<AppUser> users)
+    {
+        var user = new AppUser { UserName = req.UserName, Email = req.Email, EmailConfirmed = true };
+        var result = await users.CreateAsync(user, req.Password);
+        return result.Succeeded
+            ? Results.Ok()
+            : Results.BadRequest(new { error = result.Errors.Select(e => e.Description) });
+    }
+
+    private static async Task<IResult> Login(LoginRequest req, UserManager<AppUser> users, IOptions<JwtOptions> jwtOpt)
+    {
+        var user = await users.FindByEmailAsync(req.EmailOrUserName)
+                    ?? await users.FindByNameAsync(req.EmailOrUserName);
+
+        if (user is null || !await users.CheckPasswordAsync(user, req.Password))
+            return Results.Unauthorized();
+
+        var jwt = jwtOpt.Value;
+        var token = CreateJwt(user, jwt);
+
+        return Results.Ok(new AuthResponse(token.Token, token.ExpiresAtUtc));
+    }
+
+    [Authorize]
+    private static IResult WhoAmI(ClaimsPrincipal user)
+    {
+        var id = user.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        var name = user.Identity?.Name ?? user.FindFirstValue(JwtRegisteredClaimNames.UniqueName);
+        var email = user.FindFirstValue(JwtRegisteredClaimNames.Email);
+
+        return Results.Ok(new { Id = id, UserName = name, Email = email });
     }
 
     private static (string Token, DateTime ExpiresAtUtc) CreateJwt(AppUser user, JwtOptions jwt)
