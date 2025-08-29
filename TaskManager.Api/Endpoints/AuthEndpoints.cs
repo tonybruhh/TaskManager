@@ -62,11 +62,11 @@ public static class AuthEndPoints
 
         var claims = new List<Claim>
         {
-            new (JwtRegisteredClaimNames.Sub, user.Id),
+            new (JwtRegisteredClaimNames.Sub, user.Id.ToString().ToLower()),
             new (JwtRegisteredClaimNames.UniqueName, user.UserName ?? string.Empty),
             new (JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
 
-            new (ClaimTypes.NameIdentifier, user.Id),
+            new (ClaimTypes.NameIdentifier, user.Id.ToString().ToLower()),
             new (ClaimTypes.Name, user.UserName ?? string.Empty),
             new (ClaimTypes.Email, user.Email ?? string.Empty)
         };

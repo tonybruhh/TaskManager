@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace TaskManager.Api.Domain;
 
-public class AppUser: IdentityUser
+public class AppUser: IdentityUser<Guid>
 {
 	
 }

@@ -18,10 +18,9 @@ public static class TaskEndpoints
 
         group.MapPost("/", async (TaskCreateRequest req, AppDbContext db, ClaimsPrincipal user) =>
         {
-            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId is null)
+            if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
                 return Results.Unauthorized();
-
+            
             var task = new TaskItem(req.Title, userId, req.Description, req.DueDateUtc);
 
             db.Tasks.Add(task);
@@ -34,8 +33,7 @@ public static class TaskEndpoints
 
         group.MapGet("/", async (AppDbContext db, ClaimsPrincipal user) =>
         {
-            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId is null)
+            if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
                 return Results.Unauthorized();
 
             var tasks = await db.Tasks.AsNoTracking()
@@ -49,8 +47,7 @@ public static class TaskEndpoints
 
         group.MapGet("/{id:guid}", async (Guid id, AppDbContext db, ClaimsPrincipal user) =>
         {
-            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId is null)
+            if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
                 return Results.Unauthorized();
 
             var task = await db.Tasks.AsNoTracking()

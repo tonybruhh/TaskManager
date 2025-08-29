@@ -80,7 +80,7 @@ public static class ServiceCollectionExtentions
             options.Password.RequireNonAlphanumeric = true;
             options.Password.RequireUppercase = true;
         })
-        .AddRoles<IdentityRole>()
+        .AddRoles<IdentityRole<Guid>>()
         .AddEntityFrameworkStores<AppDbContext>()
         .AddSignInManager()
         .AddDefaultTokenProviders();

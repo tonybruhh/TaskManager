@@ -22,17 +22,17 @@ public class TaskItem
     public DateTime? DueDateUtc { get; set; }
 
     [Required]
-    public string UserId { get; set; } = null!;
+    public Guid UserId { get; set; }
 
     [ForeignKey(nameof(UserId))]
     public AppUser? User { get; private set; }
 
     protected TaskItem() { }
 
-    public TaskItem(string title, string userId, string? description = null, DateTime? dueDateUtc = null)
+    public TaskItem(string title, Guid userId, string? description = null, DateTime? dueDateUtc = null)
     {
         if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("Title is required", nameof(title));
-        if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException("UserId is required", nameof(userId));
+        if (userId == default) throw new ArgumentException("UserId is required", nameof(userId));
 
         Id = Guid.NewGuid();
         Title = title.Trim();
