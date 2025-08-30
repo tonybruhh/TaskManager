@@ -34,13 +34,13 @@ public static class TaskEndpoints
     {
         var userId = user.GetUserIdOrThrow();
 
-        var task = new TaskItem(req.Title, userId, req.Description, req.DueDateUtc);
+        var task = new TaskItem(req.Title, userId, req.Description, req.DueDate);
         db.Tasks.Add(task);
 
         await db.SaveChangesAsync();
 
         return Results.Created($"/api/tasks/{task.Id}",
-            new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.DueDateUtc));
+            new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, task.DueDate));
     }
 
     private static async Task<IResult> GetTasksAsync(
@@ -66,7 +66,7 @@ public static class TaskEndpoints
         var (p, ps) = Paging.Normalize(page, pageSize);
         var total = await tasks.CountAsync();
         var items = await tasks.Skip((p - 1) * ps).Take(ps)
-            .Select(task => new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.DueDateUtc))
+            .Select(task => new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, task.DueDate))
             .ToListAsync();
 
         return Results.Ok(new PagedResult<TaskResponse>(items, p, ps, items.Count, total));
@@ -78,7 +78,7 @@ public static class TaskEndpoints
 
         var task = await db.Tasks.AsNoTracking()
             .Where(task => task.Id == id)
-            .Select(task => new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.DueDateUtc))
+            .Select(task => new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, task.DueDate))
             .FirstOrDefaultAsync();
 
         return task is null ? Results.NotFound() : Results.Ok(task);
@@ -96,11 +96,11 @@ public static class TaskEndpoints
         task.Title = req.Title ?? task.Title;
         task.Description = req.Description ?? task.Description;
         task.IsCompleted = req.IsCompleted ?? task.IsCompleted;
-        task.DueDateUtc = req.DueDateUtc ?? task.DueDateUtc;
+        task.DueDate = req.DueDate ?? task.DueDate;
 
         await db.SaveChangesAsync();
 
-        return Results.Ok(new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, req.DueDateUtc));
+        return Results.Ok(new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, req.DueDate));
     }
 
     private static async Task<IResult> DeleteTaskAsync(Guid id, AppDbContext db, ClaimsPrincipal user)
@@ -123,7 +123,7 @@ public static class TaskEndpoints
         var done  = await db.Tasks.CountAsync(t => t.UserId == userId && t.IsCompleted);
         var open  = total - done;
         var overdue = await db.Tasks.CountAsync(t =>
-            t.UserId == userId && !t.IsCompleted && t.DueDateUtc != null && t.DueDateUtc < now);
+            t.UserId == userId && !t.IsCompleted && t.DueDate != null && t.DueDate < now);
 
         return Results.Ok(new { total, open, done, overdue });
     }
@@ -140,8 +140,8 @@ public static class TaskEndpoints
         string? search)
     {
         if (isCompleted is not null) tasks = tasks.Where(t => t.IsCompleted == isCompleted.Value);
-        if (dueBefore is not null) tasks = tasks.Where(t => t.DueDateUtc != null && t.DueDateUtc < dueBefore);
-        if (dueAfter is not null) tasks = tasks.Where(t => t.DueDateUtc != null && t.DueDateUtc > dueAfter);
+        if (dueBefore is not null) tasks = tasks.Where(t => t.DueDate != null && t.DueDate < dueBefore);
+        if (dueAfter is not null) tasks = tasks.Where(t => t.DueDate != null && t.DueDate > dueAfter);
         if (createdBefore is not null) tasks = tasks.Where(t => t.CreatedAt < createdBefore);
         if (createdAfter is not null) tasks = tasks.Where(t => t.CreatedAt > createdAfter);
 
@@ -171,8 +171,8 @@ public static class TaskEndpoints
                 {
                     "created" => tasks.OrderBy(t => t.CreatedAt),
                     "-created" => tasks.OrderByDescending(t => t.CreatedAt),
-                    "due" => tasks.OrderBy(t => t.DueDateUtc),
-                    "-due" => tasks.OrderByDescending(t => t.DueDateUtc),
+                    "due" => tasks.OrderBy(t => t.DueDate),
+                    "-due" => tasks.OrderByDescending(t => t.DueDate),
                     "title" => tasks.OrderBy(t => t.Title),
                     "-title" => tasks.OrderByDescending(t => t.Title)
                 };
@@ -181,8 +181,8 @@ public static class TaskEndpoints
                 {
                     "created" => ordered.ThenBy(t => t.CreatedAt),
                     "-created" => ordered.ThenByDescending(t => t.CreatedAt),
-                    "due" => ordered.ThenBy(t => t.DueDateUtc),
-                    "-due" => ordered.ThenByDescending(t => t.DueDateUtc),
+                    "due" => ordered.ThenBy(t => t.DueDate),
+                    "-due" => ordered.ThenByDescending(t => t.DueDate),
                     "title" => ordered.ThenBy(t => t.Title),
                     "-title" => ordered.ThenByDescending(t => t.Title)
                 };

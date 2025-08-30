@@ -17,9 +17,11 @@ public class TaskItem
 
     public bool IsCompleted { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; private set; }
 
-    public DateTime? DueDateUtc { get; set; }
+    public DateTimeOffset UpdatedAt { get; private set; }
+
+    public DateTimeOffset? DueDate { get; set; }
 
     [Required]
     public Guid UserId { get; set; }
@@ -29,7 +31,7 @@ public class TaskItem
 
     protected TaskItem() { }
 
-    public TaskItem(string title, Guid userId, string? description = null, DateTime? dueDateUtc = null)
+    public TaskItem(string title, Guid userId, string? description = null, DateTimeOffset? dueDate = null)
     {
         if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("Title is required", nameof(title));
         if (userId == default) throw new ArgumentException("UserId is required", nameof(userId));
@@ -38,7 +40,7 @@ public class TaskItem
         Title = title.Trim();
         UserId = userId;
         Description = description?.Trim();
-        DueDateUtc = dueDateUtc;
+        DueDate = dueDate;
         IsCompleted = false;
     }
 }

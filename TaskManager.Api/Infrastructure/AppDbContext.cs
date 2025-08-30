@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using TaskManager.Api.Domain;
 
 namespace TaskManager.Api.Infrastructure;
@@ -22,12 +23,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
             b.HasIndex(t => t.UserId);
             b.HasIndex(t => new { t.UserId, t.IsCompleted });
-            b.HasIndex(t => new { t.UserId, t.DueDateUtc }).IsDescending(false, true);
+            b.HasIndex(t => new { t.UserId, t.DueDate }).IsDescending(false, true);
 
             b.Property(p => p.CreatedAt)
                 .HasDefaultValueSql("TIMEZONE('UTC', NOW())")
                 .ValueGeneratedOnAdd();
 
+            b.Property(p => p.UpdatedAt)
+                .HasDefaultValueSql("TIMEZONE('UTC', NOW())")
+                .ValueGeneratedOnAddOrUpdate()
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
         });
     }
 }
