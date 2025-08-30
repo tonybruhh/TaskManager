@@ -40,7 +40,7 @@ public static class TaskEndpoints
         await db.SaveChangesAsync();
 
         return Results.Created($"/api/tasks/{task.Id}",
-            new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.DueDateUtc));
+            new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.DueDateUtc));
     }
 
     private static async Task<IResult> GetTasksAsync(
@@ -66,7 +66,7 @@ public static class TaskEndpoints
         var (p, ps) = Paging.Normalize(page, pageSize);
         var total = await tasks.CountAsync();
         var items = await tasks.Skip((p - 1) * ps).Take(ps)
-            .Select(task => new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.DueDateUtc))
+            .Select(task => new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.DueDateUtc))
             .ToListAsync();
 
         return Results.Ok(new PagedResult<TaskResponse>(items, p, ps, items.Count, total));
@@ -78,7 +78,7 @@ public static class TaskEndpoints
 
         var task = await db.Tasks.AsNoTracking()
             .Where(task => task.Id == id)
-            .Select(task => new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.DueDateUtc))
+            .Select(task => new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.DueDateUtc))
             .FirstOrDefaultAsync();
 
         return task is null ? Results.NotFound() : Results.Ok(task);
@@ -100,7 +100,7 @@ public static class TaskEndpoints
 
         await db.SaveChangesAsync();
 
-        return Results.Ok(new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, req.DueDateUtc));
+        return Results.Ok(new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, req.DueDateUtc));
     }
 
     private static async Task<IResult> DeleteTaskAsync(Guid id, AppDbContext db, ClaimsPrincipal user)
