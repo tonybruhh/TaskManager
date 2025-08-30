@@ -22,7 +22,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
             b.HasIndex(t => t.UserId);
             b.HasIndex(t => new { t.UserId, t.IsCompleted });
-            b.HasIndex(t => new { t.UserId, t.DueDateUtc });
             b.HasIndex(t => new { t.UserId, t.DueDateUtc }).IsDescending(false, true);
         });
     }
