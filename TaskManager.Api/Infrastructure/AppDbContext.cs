@@ -27,6 +27,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
             b.HasQueryFilter(t => !t.IsDeleted);
 
+            b.Property<uint>("xmin").IsRowVersion();
+
             b.Property(p => p.CreatedAt)
                 .HasDefaultValueSql("TIMEZONE('UTC', NOW())")
                 .ValueGeneratedOnAdd();
