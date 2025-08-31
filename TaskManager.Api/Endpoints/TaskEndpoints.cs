@@ -86,9 +86,9 @@ public static class TaskEndpoints
 
     private static async Task<IResult> UpdateTaskAsync(Guid id, TaskUpdateRequest req, AppDbContext db, ClaimsPrincipal user)
     {
-        user.IsUserIdNullOrEmpty();
+        var userId = user.GetUserIdOrThrow();
 
-        var task = await db.Tasks.FirstOrDefaultAsync(task => task.Id == id);
+        var task = await db.Tasks.FirstOrDefaultAsync(task => task.Id == id && task.UserId == userId);
 
         if (task is null)
             return Results.NotFound();
@@ -105,11 +105,9 @@ public static class TaskEndpoints
 
     private static async Task<IResult> DeleteTaskAsync(Guid id, AppDbContext db, ClaimsPrincipal user)
     {
-        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId is null)
-            return Results.Unauthorized();
+        var userId = user.GetUserIdOrThrow();
 
-        await db.Tasks.Where(task => task.Id == id).ExecuteDeleteAsync();
+        await db.Tasks.Where(task => task.Id == id && task.UserId == userId).ExecuteDeleteAsync();
 
         return Results.NoContent();
     }
