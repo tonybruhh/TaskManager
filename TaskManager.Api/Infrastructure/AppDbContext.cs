@@ -24,6 +24,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             b.HasIndex(t => t.UserId);
             b.HasIndex(t => new { t.UserId, t.IsCompleted });
             b.HasIndex(t => new { t.UserId, t.DueDate }).IsDescending(false, true);
+            b.HasIndex(t => new { t.UserId, t.CreatedAt }).IsDescending(false, true);
+            b.HasIndex(t => new { t.UserId, t.UpdatedAt }).IsDescending(false, true);
+            b.HasIndex(t => new { t.UserId, t.CompletedAt }).IsDescending(false, true);
 
             b.HasQueryFilter(t => !t.IsDeleted);
 
