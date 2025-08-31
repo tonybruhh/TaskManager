@@ -160,11 +160,10 @@ public static class TaskEndpoints
             return tasks;
 
         IOrderedQueryable<TaskItem>? ordered = null;
-
         foreach (var sorting in sortings.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
-
             if (ordered is null)
+            {
                 ordered = sorting switch
                 {
                     "created" => tasks.OrderBy(t => t.CreatedAt),
@@ -172,9 +171,12 @@ public static class TaskEndpoints
                     "due" => tasks.OrderBy(t => t.DueDate),
                     "-due" => tasks.OrderByDescending(t => t.DueDate),
                     "title" => tasks.OrderBy(t => t.Title),
-                    "-title" => tasks.OrderByDescending(t => t.Title)
+                    "-title" => tasks.OrderByDescending(t => t.Title),
+                    _ => ordered
                 };
+            }
             else
+            {
                 ordered = sorting switch
                 {
                     "created" => ordered.ThenBy(t => t.CreatedAt),
@@ -182,8 +184,10 @@ public static class TaskEndpoints
                     "due" => ordered.ThenBy(t => t.DueDate),
                     "-due" => ordered.ThenByDescending(t => t.DueDate),
                     "title" => ordered.ThenBy(t => t.Title),
-                    "-title" => ordered.ThenByDescending(t => t.Title)
+                    "-title" => ordered.ThenByDescending(t => t.Title),
+                    _ => ordered
                 };
+            }
         }
 
         return ordered ?? tasks;
