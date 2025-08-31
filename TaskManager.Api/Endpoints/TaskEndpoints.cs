@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using TaskManager.Api.Common;
@@ -27,7 +26,7 @@ public static class TaskEndpoints
         group.MapPost("/{id:guid}/complete", CompleteTask);
         group.MapDelete("/{id:guid}", DeleteTaskAsync);
         group.MapGet("/_stats", GetStats);
-        
+
         return app;
     }
     #endregion
@@ -103,7 +102,7 @@ public static class TaskEndpoints
 
         try
         {
-        await db.SaveChangesAsync();
+            await db.SaveChangesAsync();
         }
         catch (DbUpdateConcurrencyException)
         {
@@ -184,7 +183,7 @@ public static class TaskEndpoints
 
         try
         {
-        await db.SaveChangesAsync();
+            await db.SaveChangesAsync();
         }
         catch (DbUpdateConcurrencyException)
         {
