@@ -31,7 +31,7 @@ public class TaskItem
 
     public bool IsDeleted { get; set; }
     
-    public DateTimeOffset? DeletedAt { get; set; }
+    public DateTimeOffset? DeletedAt { get; private set; }
 
     protected TaskItem() { }
 
@@ -46,5 +46,10 @@ public class TaskItem
         Description = description?.Trim();
         DueDate = dueDate;
         IsCompleted = false;
+    }
+
+    public static TaskItem CreateStub(Guid id)
+    {
+        return new TaskItem() { Id = id };
     }
 }
