@@ -122,7 +122,7 @@ public static class TaskEndpoints
             {
                 t.Id,
                 t.IsCompleted,
-                Xmin = EF.Property<uint>(t, "mxin")
+                Xmin = EF.Property<uint>(t, "xmin")
             })
             .SingleOrDefaultAsync();
 
