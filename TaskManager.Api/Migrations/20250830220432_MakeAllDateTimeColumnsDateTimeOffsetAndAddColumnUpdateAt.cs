@@ -49,7 +49,11 @@ namespace TaskManager.Api.Migrations
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
+
         {
+            migrationBuilder.Sql("""DROP TRIGGER IF EXISTS trg_tasks_updated_at ON "Tasks";""");
+            migrationBuilder.Sql("""DROP FUNCTION IF EXISTS set_updated_at();""");
+            
             migrationBuilder.DropColumn(
                 name: "UpdatedAt",
                 table: "Tasks");
@@ -63,9 +67,6 @@ namespace TaskManager.Api.Migrations
                 name: "IX_Tasks_UserId_DueDate",
                 table: "Tasks",
                 newName: "IX_Tasks_UserId_DueDateUtc");
-
-            migrationBuilder.Sql("""DROP TRIGGER IF EXISTS trg_tasks_updated_at ON "Tasks";""");
-            migrationBuilder.Sql("""DROP FUNCTION IF EXISTS set_updated_at();""");
         }
     }
 }
