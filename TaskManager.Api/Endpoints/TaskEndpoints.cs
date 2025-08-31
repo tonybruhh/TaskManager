@@ -25,6 +25,7 @@ public static class TaskEndpoints
         group.MapPut("/{id:guid}", UpdateTaskAsync).ValidateWith<TaskUpdateRequest>();
         group.MapPost("/{id:guid}/complete", CompleteTaskAsync);
         group.MapDelete("/{id:guid}", DeleteTaskAsync);
+        group.MapPost("/{id:guid}/restore", RestoreTaskAsync);
         group.MapGet("/_stats", GetStatsAsync);
 
         return app;
@@ -191,6 +192,48 @@ public static class TaskEndpoints
         }
 
         return Results.NoContent();
+    }
+
+    private static async Task<IResult> RestoreTaskAsync(Guid id, AppDbContext db, ClaimsPrincipal user)
+    {
+        var userId = user.GetUserIdOrThrow();
+
+        var dto = await db.Tasks
+            .IgnoreQueryFilters()
+            .Where(t => t.Id == id && t.UserId == userId)
+            .Select(t => new
+            {
+                t.Id,
+                t.IsDeleted,
+                Xmin = EF.Property<uint>(t, "xmin")
+            })
+            .SingleOrDefaultAsync();
+
+        if (dto is null)
+            return Results.NotFound();
+
+        if (!dto.IsDeleted)
+            return Results.Ok(new { restored = false, warning = "The task is not deleted" });
+
+        var stub = TaskItem.CreateStub(id);
+
+        db.Attach(stub);
+
+        stub.IsDeleted = false;
+
+        db.Entry(stub).Property(t => t.IsDeleted).IsModified = true;
+        db.Entry(stub).Property("xmin").OriginalValue = dto.Xmin;
+
+        try
+        {
+            await db.SaveChangesAsync();
+        }
+        catch
+        {
+            Results.Conflict(new { error = CONCURRENCY_ERROR_MESSAGE });
+        }
+        
+        return Results.Ok(new { restored = true });
     }
 
     private static async Task<IResult> GetStatsAsync(AppDbContext db, ClaimsPrincipal user)
