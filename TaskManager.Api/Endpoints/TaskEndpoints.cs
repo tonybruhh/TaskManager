@@ -150,14 +150,39 @@ public static class TaskEndpoints
     {
         var userId = user.GetUserIdOrThrow();
 
-        var task = await db.Tasks.FirstOrDefaultAsync(task => task.Id == id && task.UserId == userId);
+        var dto = await db.Tasks
+            .Where(t => t.Id == id && t.UserId == userId)
+            .Select(t => new
+            {
+                t.Id,
+                t.IsDeleted,
+                Xmin = EF.Property<uint>(t, "xmin")
+            })
+            .SingleOrDefaultAsync();
 
-        if (task is null || task.IsDeleted)
+        if (dto is null)
             return Results.NotFound();
 
-        task.IsDeleted = true;
+        if (dto.IsDeleted)
+            return Results.NoContent();
 
+        var stub = TaskItem.CreateStub(id);
+
+        db.Attach(stub);
+
+        stub.IsDeleted = true;
+
+        db.Entry(stub).Property(t => t.IsDeleted).IsModified = true;
+        db.Entry(stub).Property("xmin").OriginalValue = dto.Xmin;
+
+        try
+        {
         await db.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Results.Conflict(new { error = CONCURRENCY_ERROR_MESSAGE });
+        }
 
         return Results.NoContent();
     }
