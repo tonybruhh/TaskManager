@@ -13,6 +13,8 @@ namespace TaskManager.Api.Endpoints;
 
 public static class TaskEndpoints
 {
+    private const string CONCURRENCY_ERROR_MESSAGE = "";
+
     #region Routing / Map
     public static IEndpointRouteBuilder MapTaskEndpoints(this IEndpointRouteBuilder app)
     {
@@ -22,6 +24,7 @@ public static class TaskEndpoints
         group.MapGet("/", GetTasksAsync);
         group.MapGet("/{id:guid}", GetTaskByIdAsync);
         group.MapPut("/{id:guid}", UpdateTaskAsync).ValidateWith<TaskUpdateRequest>();
+        group.MapPost("/{id:guid}/complete", CompleteTask);
         group.MapDelete("/{id:guid}", DeleteTaskAsync);
         group.MapGet("/_stats", GetStats);
         
@@ -101,6 +104,46 @@ public static class TaskEndpoints
         await db.SaveChangesAsync();
 
         return Results.Ok(new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, req.DueDate));
+    }
+
+    private static async Task<IResult> CompleteTask(Guid Id, AppDbContext db, ClaimsPrincipal user)
+    {
+        var userId = user.GetUserIdOrThrow();
+
+        var dto = await db.Tasks
+            .Where(t => t.Id == Id && t.UserId == userId)
+            .Select(t => new
+            {
+                t.Id,
+                t.IsCompleted,
+                Xmin = EF.Property<uint>(t, "mxin")
+            })
+            .SingleOrDefaultAsync();
+
+        if (dto is null)
+            return Results.NotFound();
+
+        if (dto.IsCompleted)
+            return Results.Ok();
+
+        var stub = TaskItem.CreateStub(dto.Id);
+        db.Attach(stub);
+
+        stub.IsCompleted = true;
+
+        db.Entry(stub).Property(x => x.IsCompleted).IsModified = true;
+        db.Entry(stub).Property("xmin").OriginalValue = dto.Xmin;
+
+        try
+        {
+            await db.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Results.Conflict(new { error = CONCURRENCY_ERROR_MESSAGE });
+        }
+
+        return Results.Ok();    
     }
 
     private static async Task<IResult> DeleteTaskAsync(Guid id, AppDbContext db, ClaimsPrincipal user)
