@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using TaskManager.Api.Configuration;
 using TaskManager.Api.Domain;
-using TaskManager.Api.Contracts.AuthDtos;
+using TaskManager.Api.Contracts;
 
 
 namespace TaskManager.Api.Endpoints;
