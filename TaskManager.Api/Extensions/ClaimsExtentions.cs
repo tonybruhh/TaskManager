@@ -11,7 +11,7 @@ public static class ClaimsExtentions
             ? userId
             : throw new UnauthorizedAccessException("Missing NameIdentifier claim.");
 
-    public static void IsUserIdNullOrEmpty(this ClaimsPrincipal user)
+    public static void AssertUserIdIsNotEmpty(this ClaimsPrincipal user)
     {
         var userId = user.FindFirstValue(ClaimTypes.NameIdentifier) 
             ?? throw new UnauthorizedAccessException("Missing NameIdentifier claim."); 

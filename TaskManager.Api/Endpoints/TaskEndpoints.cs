@@ -74,7 +74,7 @@ public static class TaskEndpoints
 
     private static async Task<IResult> GetTaskByIdAsync(Guid id, AppDbContext db, ClaimsPrincipal user)
     {
-        user.IsUserIdNullOrEmpty();
+        user.AssertUserIdIsNotEmpty();
 
         var task = await db.Tasks.AsNoTracking()
             .Where(task => task.Id == id)
