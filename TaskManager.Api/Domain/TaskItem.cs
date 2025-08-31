@@ -30,6 +30,8 @@ public class TaskItem
     public AppUser? User { get; private set; }
 
     public bool IsDeleted { get; set; }
+    
+    public DateTimeOffset? DeletedAt { get; set; }
 
     protected TaskItem() { }
 
