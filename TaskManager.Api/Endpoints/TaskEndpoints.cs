@@ -23,9 +23,9 @@ public static class TaskEndpoints
         group.MapGet("/", GetTasksAsync);
         group.MapGet("/{id:guid}", GetTaskByIdAsync);
         group.MapPut("/{id:guid}", UpdateTaskAsync).ValidateWith<TaskUpdateRequest>();
-        group.MapPost("/{id:guid}/complete", CompleteTask);
+        group.MapPost("/{id:guid}/complete", CompleteTaskAsync);
         group.MapDelete("/{id:guid}", DeleteTaskAsync);
-        group.MapGet("/_stats", GetStats);
+        group.MapGet("/_stats", GetStatsAsync);
 
         return app;
     }
@@ -112,7 +112,7 @@ public static class TaskEndpoints
         return Results.Ok(new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, req.DueDate));
     }
 
-    private static async Task<IResult> CompleteTask(Guid Id, AppDbContext db, ClaimsPrincipal user)
+    private static async Task<IResult> CompleteTaskAsync(Guid Id, AppDbContext db, ClaimsPrincipal user)
     {
         var userId = user.GetUserIdOrThrow();
 
@@ -193,7 +193,7 @@ public static class TaskEndpoints
         return Results.NoContent();
     }
 
-    private static async Task<IResult> GetStats(AppDbContext db, ClaimsPrincipal user)
+    private static async Task<IResult> GetStatsAsync(AppDbContext db, ClaimsPrincipal user)
     {
         var userId = user.GetUserIdOrThrow();
 
