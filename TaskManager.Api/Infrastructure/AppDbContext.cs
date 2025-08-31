@@ -25,6 +25,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             b.HasIndex(t => new { t.UserId, t.IsCompleted });
             b.HasIndex(t => new { t.UserId, t.DueDate }).IsDescending(false, true);
 
+            b.HasQueryFilter(t => !t.IsDeleted);
+
             b.Property(p => p.CreatedAt)
                 .HasDefaultValueSql("TIMEZONE('UTC', NOW())")
                 .ValueGeneratedOnAdd();

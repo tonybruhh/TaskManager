@@ -29,6 +29,8 @@ public class TaskItem
     [ForeignKey(nameof(UserId))]
     public AppUser? User { get; private set; }
 
+    public bool IsDeleted { get; set; }
+
     protected TaskItem() { }
 
     public TaskItem(string title, Guid userId, string? description = null, DateTimeOffset? dueDate = null)

@@ -107,7 +107,14 @@ public static class TaskEndpoints
     {
         var userId = user.GetUserIdOrThrow();
 
-        await db.Tasks.Where(task => task.Id == id && task.UserId == userId).ExecuteDeleteAsync();
+        var task = await db.Tasks.FirstOrDefaultAsync(task => task.Id == id && task.UserId == userId);
+
+        if (task is null || task.IsDeleted)
+            return Results.NotFound();
+
+        task.IsDeleted = true;
+
+        await db.SaveChangesAsync();
 
         return Results.NoContent();
     }
