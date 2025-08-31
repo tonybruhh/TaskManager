@@ -23,6 +23,7 @@ namespace TaskManager.Api.Migrations
                 BEGIN
                 IF TG_OP = 'INSERT' AND NEW."IsDeleted" AND NEW."DeletedAt" IS NULL THEN
                     NEW."DeletedAt" := timezone('utc', now());
+                    RETURN NEW;
                 END IF;
 
                 IF NEW."IsDeleted" IS DISTINCT FROM OLD."IsDeleted" THEN
