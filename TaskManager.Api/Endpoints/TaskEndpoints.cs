@@ -101,7 +101,14 @@ public static class TaskEndpoints
         task.IsCompleted = req.IsCompleted ?? task.IsCompleted;
         task.DueDate = req.DueDate ?? task.DueDate;
 
+        try
+        {
         await db.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Results.Conflict(new { error = CONCURRENCY_ERROR_MESSAGE });
+        }
 
         return Results.Ok(new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, req.DueDate));
     }
