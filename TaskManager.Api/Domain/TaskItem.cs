@@ -17,6 +17,8 @@ public class TaskItem
 
     public bool IsCompleted { get; set; }
 
+    public DateTimeOffset? CompletedAt { get; private set; }
+
     public DateTimeOffset CreatedAt { get; private set; }
 
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -30,7 +32,7 @@ public class TaskItem
     public AppUser? User { get; private set; }
 
     public bool IsDeleted { get; set; }
-    
+
     public DateTimeOffset? DeletedAt { get; private set; }
 
     protected TaskItem() { }
