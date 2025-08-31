@@ -30,8 +30,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
                 .ValueGeneratedOnAdd();
 
             b.Property(p => p.UpdatedAt)
-                .HasDefaultValueSql("TIMEZONE('UTC', NOW())")
-                .ValueGeneratedOnAddOrUpdate()
+                .ValueGeneratedOnUpdate()
                 .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
         });
     }
