@@ -76,10 +76,10 @@ public static class TaskEndpoints
 
     private static async Task<IResult> GetTaskByIdAsync(Guid id, AppDbContext db, ClaimsPrincipal user)
     {
-        user.AssertUserIdIsNotEmpty();
+        var userId = user.GetUserIdOrThrow();
 
         var task = await db.Tasks.AsNoTracking()
-            .Where(task => task.Id == id)
+            .Where(task => task.Id == id && task.UserId == userId)
             .Select(task => new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, task.DueDate))
             .FirstOrDefaultAsync();
 
