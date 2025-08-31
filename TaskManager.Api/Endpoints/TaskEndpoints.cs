@@ -290,8 +290,12 @@ public static class TaskEndpoints
             {
                 ordered = sorting switch
                 {
-                    "created" => tasks.OrderBy(t => t.CreatedAt),
-                    "-created" => tasks.OrderByDescending(t => t.CreatedAt),
+                    "created" => tasks.OrderBy(t => t.CreatedAt).ThenBy(t => t.Id),
+                    "-created" => tasks.OrderByDescending(t => t.CreatedAt).ThenByDescending(t => t.Id),
+                    "udpated" => tasks.OrderBy(t => t.UpdatedAt),
+                    "-updated" => tasks.OrderByDescending(t => t.UpdatedAt),
+                    "completed" => tasks.OrderBy(t => t.CompletedAt),
+                    "-completed" => tasks.OrderByDescending(t => t.CompletedAt),
                     "due" => tasks.OrderBy(t => t.DueDate),
                     "-due" => tasks.OrderByDescending(t => t.DueDate),
                     "title" => tasks.OrderBy(t => t.Title),
@@ -303,8 +307,12 @@ public static class TaskEndpoints
             {
                 ordered = sorting switch
                 {
-                    "created" => ordered.ThenBy(t => t.CreatedAt),
-                    "-created" => ordered.ThenByDescending(t => t.CreatedAt),
+                    "created" => ordered.ThenBy(t => t.CreatedAt).ThenBy(t => t.Id),
+                    "-created" => ordered.ThenByDescending(t => t.CreatedAt).ThenByDescending(t => t.Id),
+                    "udpated" => ordered.ThenBy(t => t.UpdatedAt),
+                    "-updated" => ordered.ThenByDescending(t => t.UpdatedAt),
+                    "completed" => ordered.ThenBy(t => t.CompletedAt),
+                    "-completed" => ordered.ThenByDescending(t => t.CompletedAt),
                     "due" => ordered.ThenBy(t => t.DueDate),
                     "-due" => ordered.ThenByDescending(t => t.DueDate),
                     "title" => ordered.ThenBy(t => t.Title),
