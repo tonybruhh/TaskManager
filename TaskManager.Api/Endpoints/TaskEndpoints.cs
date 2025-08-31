@@ -43,7 +43,7 @@ public static class TaskEndpoints
         await db.SaveChangesAsync();
 
         return Results.Created($"/api/tasks/{task.Id}",
-            new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, task.DueDate));
+            new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, task.CompletedAt, task.DueDate));
     }
 
     private static async Task<IResult> GetTasksAsync(
@@ -69,7 +69,7 @@ public static class TaskEndpoints
         var (p, ps) = Paging.Normalize(page, pageSize);
         var total = await tasks.CountAsync();
         var items = await tasks.Skip((p - 1) * ps).Take(ps)
-            .Select(task => new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, task.DueDate))
+            .Select(task => new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, task.CompletedAt, task.DueDate))
             .ToListAsync();
 
         return Results.Ok(new PagedResult<TaskResponse>(items, p, ps, items.Count, total));
@@ -81,7 +81,7 @@ public static class TaskEndpoints
 
         var task = await db.Tasks.AsNoTracking()
             .Where(task => task.Id == id && task.UserId == userId)
-            .Select(task => new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, task.DueDate))
+            .Select(task => new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, task.CompletedAt, task.DueDate))
             .FirstOrDefaultAsync();
 
         return task is null ? Results.NotFound() : Results.Ok(task);
@@ -110,7 +110,7 @@ public static class TaskEndpoints
             return Results.Conflict(new { error = CONCURRENCY_ERROR_MESSAGE });
         }
 
-        return Results.Ok(new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, req.DueDate));
+        return Results.Ok(new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, task.CompletedAt, req.DueDate));
     }
 
     private static async Task<IResult> CompleteTaskAsync(Guid Id, AppDbContext db, ClaimsPrincipal user)
