@@ -1,10 +1,5 @@
-using System.Net;
-using System.Net.Http.Json;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore.Storage.Json;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
-using Newtonsoft.Json;
 using TaskManager.Api.Domain;
 using TaskManager.Api.Infrastructure;
 using TaskManager.Api.Configuration;
@@ -14,6 +9,11 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using StackExchange.Redis;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.DataProtection.StackExchangeRedis;
 
 namespace TaskManager.Api.Extensions;
 
@@ -70,7 +70,6 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddIdentityCoreServices(this IServiceCollection services)
     {
         services.AddSingleton<TimeProvider>(TimeProvider.System);
-        services.AddDataProtection();
 
         services
         .AddIdentityCore<AppUser>(options =>
@@ -128,6 +127,34 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddAuthorization();
+        return services;
+    }
+
+    public static IServiceCollection AddRedisConnectionMultiplexer(this IServiceCollection services, IConfiguration cfg)
+    {
+        var connectionString = cfg.GetConnectionString("Redis") ?? throw new InvalidOperationException("Missing ConnectionStrings:Redis");
+        services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(connectionString));
+
+        return services;
+    }
+
+    public static IServiceCollection AddDataProtectionServices(this IServiceCollection services, IConfiguration cfg)
+    {
+        services.Configure<DataProtectionApiOptions>(cfg.GetSection(DataProtectionApiOptions.SectionName));
+        var dp = cfg.GetSection(DataProtectionApiOptions.SectionName).Get<DataProtectionApiOptions>()
+            ?? new DataProtectionApiOptions();
+
+        services.AddDataProtection()
+            .SetApplicationName(dp.AppName ?? "TaskManager")
+            .SetDefaultKeyLifetime(TimeSpan.FromDays(dp.KeyLifetimeDays > 0 ? dp.KeyLifetimeDays : 30));
+
+        services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(sp =>
+            new ConfigureOptions<KeyManagementOptions>(o =>
+            {
+                var mux = sp.GetRequiredService<IConnectionMultiplexer>();
+                o.XmlRepository = new RedisXmlRepository(() => mux.GetDatabase(), "DataProtection-Keys");
+            }));
+
         return services;
     }
 }

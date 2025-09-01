@@ -3,6 +3,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
     .AddPersistence(builder.Configuration)
+    .AddRedisConnectionMultiplexer(builder.Configuration)
+    .AddDataProtectionServices(builder.Configuration)
     .AddIdentityCoreServices()
     .AddEndpointsApiExplorer()
     .AddJwtAuth(builder.Configuration)
