@@ -44,8 +44,8 @@ services:
       JWT__Issuer: ${JWT__Issuer}
       JWT__Audience: ${JWT__Audience}
       JWT__ExpiresMinutes: ${JWT__ExpiresMinutes}"
-      DataProtection_AppName: ${DataProtection_AppName}
-      DataProtection_KeyLifetimeDays: ${DataProtection_KeyLifetimeDays}
+      DataProtection__AppName: ${DataProtection__AppName}
+      DataProtection__KeyLifetimeDays: ${DataProtection__KeyLifetimeDays}
     ports:
       - "8080:8080"
 
