@@ -13,6 +13,20 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    container_name: tm-redis
+    restart: unless-stopped
+    command: ["redis-server","--appendonly","yes","--requirepass","${REDIS_PASSWORD}"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "PING"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+
   api:
     build: 
       context: .
@@ -20,14 +34,15 @@ services:
     container_name: tm-api
     depends_on:
       - db
+      - redis
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__Postgres: Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      ConnectionStrings__Redis: redis:6379,password=${REDIS_PASSWORD},abortConnect=false
       JWT__Key: ${JWT__Key}
-      JWT__Issuer: TaskManager
-      JWT__Audience: TaskManager
-      JWT__ExpiresMinutes: "60" 
+      DataProtection_AppName: ${DataProtection_AppName}
+      DataProtection_KeyLifetimeDays: ${DataProtection_KeyLifetimeDays}
     ports:
       - "8080:8080"
 
