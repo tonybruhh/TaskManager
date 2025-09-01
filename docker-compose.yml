@@ -43,7 +43,7 @@ services:
       JWT__Key: ${JWT__Key}
       JWT__Issuer: ${JWT__Issuer}
       JWT__Audience: ${JWT__Audience}
-      JWT__ExpiresMinutes: ${JWT__ExpiresMinutes}"
+      JWT__ExpiresMinutes: ${JWT__ExpiresMinutes}
       DataProtection__AppName: ${DataProtection__AppName}
       DataProtection__KeyLifetimeDays: ${DataProtection__KeyLifetimeDays}
     ports:
