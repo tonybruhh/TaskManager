@@ -36,11 +36,14 @@ services:
       - db
       - redis
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS}
       ConnectionStrings__Postgres: Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       ConnectionStrings__Redis: redis:6379,password=${REDIS_PASSWORD},abortConnect=false
       JWT__Key: ${JWT__Key}
+      JWT__Issuer: ${JWT__Issuer}
+      JWT__Audience: ${JWT__Audience}
+      JWT__ExpiresMinutes: ${JWT__ExpiresMinutes}"
       DataProtection_AppName: ${DataProtection_AppName}
       DataProtection_KeyLifetimeDays: ${DataProtection_KeyLifetimeDays}
     ports:
