@@ -12,7 +12,7 @@ namespace TaskManager.Api.Endpoints;
 
 public static class TaskEndpoints
 {
-    private const string CONCURRENCY_ERROR_MESSAGE = "";
+    private const string CONCURRENCY_ERROR_MESSAGE = "The task was modified by another process.";
 
     #region Routing / Map
     public static IEndpointRouteBuilder MapTaskEndpoints(this IEndpointRouteBuilder app)
