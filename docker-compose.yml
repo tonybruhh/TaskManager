@@ -33,8 +33,10 @@ services:
       dockerfile: TaskManager.Api/dockerfile
     container_name: tm-api
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_started
+      redis: 
+        condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
       ASPNETCORE_URLS: ${ASPNETCORE_URLS}
