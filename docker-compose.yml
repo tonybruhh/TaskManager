@@ -46,6 +46,8 @@ services:
       JWT__ExpiresMinutes: ${JWT__ExpiresMinutes}
       DataProtection__AppName: ${DataProtection__AppName}
       DataProtection__KeyLifetimeDays: ${DataProtection__KeyLifetimeDays}
+      DataProtection__Cert__PfxPath: ./cert/dpkeys.pfx
+      DataProtection__Cert__PfxPassword: PfxPassword
     ports:
       - "8080:8080"
 

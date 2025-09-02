@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.DataProtection.StackExchangeRedis;
+using System.Security.Cryptography.X509Certificates;
 
 namespace TaskManager.Api.Extensions;
 
@@ -138,15 +139,26 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddDataProtectionServices(this IServiceCollection services, IConfiguration cfg)
+    public static IServiceCollection AddDataProtectionServices(this IServiceCollection services, IConfiguration cfg, IHostEnvironment env)
     {
         services.Configure<DataProtectionApiOptions>(cfg.GetSection(DataProtectionApiOptions.SectionName));
-        var dp = cfg.GetSection(DataProtectionApiOptions.SectionName).Get<DataProtectionApiOptions>()
-            ?? new DataProtectionApiOptions();
+        var dp = cfg.GetSection(DataProtectionApiOptions.SectionName).Get<DataProtectionApiOptions>() ?? new();
 
-        services.AddDataProtection()
+        var dataProtectionServices = services.AddDataProtection()
             .SetApplicationName(dp.AppName ?? "TaskManager")
             .SetDefaultKeyLifetime(TimeSpan.FromDays(dp.KeyLifetimeDays > 0 ? dp.KeyLifetimeDays : 30));
+
+        if (!env.IsDevelopment())
+        {    
+            var pfxPath = cfg["DataProtection:Cert:PfxPath"];
+            var pfxPwd = cfg["DataProtection:Cert:PfxPassword"];
+
+            if (string.IsNullOrWhiteSpace(pfxPath) || string.IsNullOrWhiteSpace(pfxPwd))
+                throw new InvalidOperationException("Configure DataProtection:Cert:PfxPath & PfxPassword");
+
+            var cert = new X509Certificate2(pfxPath, pfxPwd, X509KeyStorageFlags.MachineKeySet);
+            dataProtectionServices.ProtectKeysWithCertificate(cert);
+        }
 
         services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(sp =>
             new ConfigureOptions<KeyManagementOptions>(o =>
