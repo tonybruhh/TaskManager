@@ -169,4 +169,14 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
+
+    public static IServiceCollection AddHealthChecksServices(this IServiceCollection services, IConfiguration cfg)
+    {
+        services
+            .AddHealthChecks()
+            .AddNpgSql(cfg.GetConnectionString("Postgres")!)
+            .AddRedis(cfg.GetConnectionString("Redis")!);
+
+        return services;
+    }
 }

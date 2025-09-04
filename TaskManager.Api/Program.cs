@@ -10,10 +10,13 @@ builder.Services
     .AddJwtAuth(builder.Configuration)
     .AddSwaggerGenForMinimalApi()
     .AddRequestValidation()
+    .AddHealthChecksServices(builder.Configuration)
     .AddProblemDetails();
 
 
 var app = builder.Build();
+app.MapHealthChecks("/health/ready");
+app.MapHealthChecks("/health/live");
 
 if (app.Environment.IsDevelopment())
 {
