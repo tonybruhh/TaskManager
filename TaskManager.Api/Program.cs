@@ -5,6 +5,7 @@ builder.Services
     .AddPersistence(builder.Configuration)
     .AddRedisConnectionMultiplexer(builder.Configuration)
     .AddDataProtectionServices(builder.Configuration, builder.Environment)
+    .AddCorsServices(builder.Configuration)
     .AddIdentityCoreServices()
     .AddEndpointsApiExplorer()
     .AddJwtAuth(builder.Configuration)
@@ -28,6 +29,7 @@ app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseCors();
 
 app.MapApi();
 

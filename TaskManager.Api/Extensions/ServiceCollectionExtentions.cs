@@ -179,4 +179,18 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
+
+    public static IServiceCollection AddCorsServices(this IServiceCollection services, IConfiguration cfg)
+    {
+        services.AddCors(o =>
+        {
+            o.AddPolicy(Constants.CorsPolicy, p => p
+                .WithOrigins(cfg["Cors:Frontend"] ?? "http://localhost:5173", "http://localhost:3000")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials());
+        });
+
+        return services;
+    }
 }
