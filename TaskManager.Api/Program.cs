@@ -1,5 +1,13 @@
 using TaskManager.Api.Extensions;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateLogger();
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog();
 
 builder.Services
     .AddPersistence(builder.Configuration)
@@ -17,6 +25,8 @@ builder.Services
 
 
 var app = builder.Build();
+
+app.UseSerilogRequestLogging();
 app.UseRateLimiter();
 
 app.MapHealthChecks("/health/ready");
