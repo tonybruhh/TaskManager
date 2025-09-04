@@ -36,7 +36,11 @@ app.MapHealthChecks("/health/live");
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(o =>
+    {
+        o.DisplayRequestDuration();
+        o.EnableTryItOutByDefault();
+    });
 }
 
 app.UseExceptionHandler();
