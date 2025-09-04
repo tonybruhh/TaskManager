@@ -6,5 +6,8 @@ namespace TaskManager.Api.Configuration;
 
 public static class Constants
 {
-    public const string CorsPolicy = "frontend";
+    public const string CorsAllowFrontend = "AllowFrontend";
+    public const string CorsAllowAll = "AllowAll";
+
+    public const string TestingEnvironment = "Testing";
 }

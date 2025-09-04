@@ -149,7 +149,7 @@ public static class ServiceCollectionExtensions
             .SetApplicationName(dp.AppName ?? "TaskManager")
             .SetDefaultKeyLifetime(TimeSpan.FromDays(dp.KeyLifetimeDays > 0 ? dp.KeyLifetimeDays : 30));
 
-        if (!env.IsDevelopment())
+        if (!env.IsDevelopment() && !env.IsEnvironment(Constants.TestingEnvironment))
         {
             var pfxPath = cfg["DataProtection:Cert:PfxPath"];
             var pfxPwd = cfg["DataProtection:Cert:PfxPassword"];
@@ -185,11 +185,19 @@ public static class ServiceCollectionExtensions
     {
         services.AddCors(o =>
         {
-            o.AddPolicy(Constants.CorsPolicy, p => p
+            o.AddPolicy(Constants.CorsAllowFrontend, p => p
                 .WithOrigins(cfg["Cors:Frontend"] ?? "http://localhost:5173", "http://localhost:3000")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials());
+        });
+
+        services.AddCors(o =>
+        {
+            o.AddPolicy(Constants.CorsAllowAll, p => p
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod());
         });
 
         return services;

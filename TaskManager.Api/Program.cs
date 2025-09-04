@@ -1,5 +1,6 @@
 using TaskManager.Api.Extensions;
 using Serilog;
+using TaskManager.Api.Configuration;
 
 Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
@@ -42,7 +43,11 @@ app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseCors();
+
+app.UseCors(
+    app.Environment.IsEnvironment(Constants.TestingEnvironment) 
+    ? Constants.CorsAllowAll
+    : Constants.CorsAllowFrontend);
 
 app.MapApi();
 

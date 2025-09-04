@@ -55,7 +55,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Development");
+        builder.UseEnvironment("Testing");
         builder.UseSetting(WebHostDefaults.ServerUrlsKey, "http://127.0.0.1:0");
     }
 
@@ -69,7 +69,6 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
         return host;
     }
-
 }
 public static class HttpClientJwt
 {
