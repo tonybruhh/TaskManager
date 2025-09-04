@@ -15,6 +15,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.DataProtection.StackExchangeRedis;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.RateLimiting;
 
 namespace TaskManager.Api.Extensions;
 
@@ -149,7 +150,7 @@ public static class ServiceCollectionExtensions
             .SetDefaultKeyLifetime(TimeSpan.FromDays(dp.KeyLifetimeDays > 0 ? dp.KeyLifetimeDays : 30));
 
         if (!env.IsDevelopment())
-        {    
+        {
             var pfxPath = cfg["DataProtection:Cert:PfxPath"];
             var pfxPwd = cfg["DataProtection:Cert:PfxPassword"];
 
@@ -189,6 +190,26 @@ public static class ServiceCollectionExtensions
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials());
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddRateLimiterServices(this IServiceCollection services)
+    {
+        services.AddRateLimiter(o =>
+        {
+            o.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: ctx.User.Identity?.Name ?? ctx.Connection.RemoteIpAddress?.ToString() ?? "anon",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 100,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    }
+                ));
+            o.RejectionStatusCode = 429;
         });
 
         return services;

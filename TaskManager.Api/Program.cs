@@ -12,10 +12,13 @@ builder.Services
     .AddSwaggerGenForMinimalApi()
     .AddRequestValidation()
     .AddHealthChecksServices(builder.Configuration)
-    .AddProblemDetails();
+    .AddProblemDetails()
+    .AddRateLimiterServices();
 
 
 var app = builder.Build();
+app.UseRateLimiter();
+
 app.MapHealthChecks("/health/ready");
 app.MapHealthChecks("/health/live");
 
