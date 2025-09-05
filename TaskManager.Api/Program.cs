@@ -28,7 +28,9 @@ builder.Services
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
-app.UseRateLimiter();
+
+if (!app.Environment.IsEnvironment(Constants.TestingEnvironment))
+    app.UseRateLimiter();
 
 app.MapHealthChecks("/health/ready");
 app.MapHealthChecks("/health/live");
