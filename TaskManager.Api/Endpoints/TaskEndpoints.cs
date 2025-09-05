@@ -110,7 +110,7 @@ public static class TaskEndpoints
             return Results.Conflict(new { error = CONCURRENCY_ERROR_MESSAGE });
         }
 
-        return Results.Ok(new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, task.CompletedAt, req.DueDate));
+        return Results.Ok(new TaskResponse(task.Id, task.Title, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt, task.CompletedAt, task.DueDate));
     }
 
     private static async Task<IResult> CompleteTaskAsync(Guid Id, AppDbContext db, ClaimsPrincipal user)
@@ -292,7 +292,7 @@ public static class TaskEndpoints
                 {
                     "created" => tasks.OrderBy(t => t.CreatedAt).ThenBy(t => t.Id),
                     "-created" => tasks.OrderByDescending(t => t.CreatedAt).ThenByDescending(t => t.Id),
-                    "udpated" => tasks.OrderBy(t => t.UpdatedAt),
+                    "updated" => tasks.OrderBy(t => t.UpdatedAt),
                     "-updated" => tasks.OrderByDescending(t => t.UpdatedAt),
                     "completed" => tasks.OrderBy(t => t.CompletedAt),
                     "-completed" => tasks.OrderByDescending(t => t.CompletedAt),
@@ -309,7 +309,7 @@ public static class TaskEndpoints
                 {
                     "created" => ordered.ThenBy(t => t.CreatedAt).ThenBy(t => t.Id),
                     "-created" => ordered.ThenByDescending(t => t.CreatedAt).ThenByDescending(t => t.Id),
-                    "udpated" => ordered.ThenBy(t => t.UpdatedAt),
+                    "updated" => ordered.ThenBy(t => t.UpdatedAt),
                     "-updated" => ordered.ThenByDescending(t => t.UpdatedAt),
                     "completed" => ordered.ThenBy(t => t.CompletedAt),
                     "-completed" => ordered.ThenByDescending(t => t.CompletedAt),
